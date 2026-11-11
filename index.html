@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus</title>
+<meta name="theme-color" content="#0b0c14">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c14; --panel:#141624; --panel2:#1b1e30; --line:#272b42;
+  --text:#f3f1ea; --dim:#9a9cb3; --sun:#ffb23e; --coral:#ff6b4a; --ok:#57d39b; --night:#7d8cff;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Sora,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+body{min-height:100dvh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--sun)}
+main{max-width:560px;margin:0 auto;padding:22px 18px 10px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:0 0 2px;line-height:1.05}
+h2{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:28px 0 10px}
+.sub{color:var(--dim);margin:0 0 6px;font-size:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.big{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.small{font-size:13px;color:var(--dim)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+.pill.on{background:rgba(255,178,62,.14);color:var(--sun);border-color:rgba(255,178,62,.35)}
+.pill.night{background:rgba(125,140,255,.14);color:var(--night);border-color:rgba(125,140,255,.35)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:14px;font-weight:600;background:var(--panel2);border:1px solid var(--line)}
+.btn.primary{background:linear-gradient(135deg,var(--sun),var(--coral));color:#1a0f05;border:0}
+.btn.block{width:100%}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat .big{margin-top:6px}
+
+/* checklist */
+.check{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 2px;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.box{flex:none;width:26px;height:26px;border-radius:9px;border:2px solid #3a3f5e;display:grid;place-items:center;transition:.15s}
+.check.done .box{background:var(--ok);border-color:var(--ok)}
+.check.done .box::after{content:"";width:11px;height:6px;border-left:3px solid #062414;border-bottom:3px solid #062414;transform:rotate(-45deg) translateY(-1px)}
+.check.done .lbl{color:var(--dim);text-decoration:line-through}
+.check .lbl small{display:block;color:var(--dim);font-size:12.5px;text-decoration:none}
+.kg{width:76px;min-height:42px;text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:6px}
+.field{flex:1;min-width:0;min-height:48px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+.bar{height:8px;border-radius:9px;background:var(--panel2);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--sun),var(--coral));border-radius:9px;transition:width .3s}
+.dots{display:flex;gap:8px;margin-top:10px}
+.dots i{width:100%;height:10px;border-radius:9px;background:var(--panel2)}
+.dots i.on{background:linear-gradient(90deg,var(--sun),var(--coral))}
+
+/* content pipeline */
+.stages{display:flex;gap:5px;margin:10px 0 12px}
+.stages span{flex:1;text-align:center;font-size:11px;font-weight:600;padding:6px 0;border-radius:8px;background:var(--panel2);color:var(--dim)}
+.stages span.on{background:rgba(255,178,62,.16);color:var(--sun)}
+.stages span.now{background:var(--sun);color:#1a0f05}
+.x{width:44px;height:44px;border-radius:12px;color:var(--dim);font-size:20px}
+
+/* looks guide */
+.tier{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.tier:last-child{border-bottom:0}
+.tier b.n{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,178,62,.14);color:var(--sun);font-size:14px}
+.tier h3{margin:3px 0 4px;font-size:16px}
+.tier p{margin:0;color:#c9c9d6;font-size:14.5px}
+.skip h3{color:var(--coral)}
+.src{font-size:13px;color:var(--dim);padding-left:18px;margin:8px 0 0}
+.src li{margin:6px 0}
+
+/* sleep table */
+.log{width:100%;border-collapse:collapse;font-size:14px}
+.log th{font-weight:600;color:var(--dim);font-size:12px;text-align:left;padding:4px 0}
+.log td{padding:9px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,12,20,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav div{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav a{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 0 10px;color:var(--dim);text-decoration:none;font-size:11.5px;font-weight:600}
+nav a svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav a.on{color:var(--sun)}
+
+/* overlays */
+.ov{position:fixed;inset:0;z-index:20;display:none;overflow:hidden;color:#fff}
+.ov.show{display:block}
+.ov .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:24px 24px calc(34px + env(safe-area-inset-bottom));z-index:3}
+.ov .date{font-size:15px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.ov .time{font-size:92px;font-weight:800;letter-spacing:-.05em;line-height:1;margin:6px 0 10px;font-variant-numeric:tabular-nums;text-shadow:0 6px 40px rgba(0,0,0,.35)}
+.ov .q{font-size:19px;font-weight:600;margin:0 0 4px}
+.ov .hint{font-size:14px;opacity:.8;margin:0 0 22px}
+.ov .acts{display:flex;gap:10px;width:100%;max-width:400px}
+.ov .acts .btn{flex:1}
+.ov .btn{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.28);color:#fff;backdrop-filter:blur(6px)}
+.ov .btn.primary{background:#fff;color:#1a0f05;border:0}
+.ov .change{display:none;gap:10px;width:100%;max-width:400px;margin-top:10px}
+.ov .change.show{display:flex}
+.ov .change input{flex:1;min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.35);color:#fff;padding:0 14px;font-size:18px;color-scheme:dark}
+.fade{opacity:0;animation:up .9s ease forwards}
+.d1{animation-delay:1.1s}.d2{animation-delay:1.5s}.d3{animation-delay:2s}.d4{animation-delay:2.5s}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* sunrise */
+#wake .sky{position:absolute;inset:0;background:linear-gradient(#0b0c2a 0%,#27214f 45%,#5b2d5e 100%)}
+#wake .dawn{position:absolute;inset:0;background:linear-gradient(#2b4a8f 0%,#f08a5d 52%,#ffcf73 78%,#ffe7a8 100%);opacity:0;animation:dawn 3.2s ease-out .2s forwards}
+@keyframes dawn{to{opacity:1}}
+#wake .sunwrap{position:absolute;left:50%;top:44%;width:0;height:0;transform:translateY(46vh);animation:rise 3.4s cubic-bezier(.2,.7,.2,1) .2s forwards}
+@keyframes rise{to{transform:translateY(0)}}
+#wake .rays{position:absolute;width:150vmax;height:150vmax;left:-75vmax;top:-75vmax;border-radius:50%;background:repeating-conic-gradient(rgba(255,240,190,.20) 0 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 62%);mask:radial-gradient(circle,#000 0,transparent 62%);animation:spin 70s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#wake .glow{position:absolute;width:420px;height:420px;left:-210px;top:-210px;border-radius:50%;background:radial-gradient(circle,rgba(255,226,150,.85),rgba(255,170,80,.25) 45%,transparent 70%);animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#wake .sun{position:absolute;width:150px;height:150px;left:-75px;top:-75px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#fffbe6,#ffd76b 55%,#ffad3d)}
+#wake .hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:58%;z-index:2}
+
+/* night */
+#night .sky{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 0%,#232a66 0%,#10122b 55%,#07080f 100%)}
+#night .stars{position:absolute;inset:0}
+#night .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2}}
+#night .moon{position:absolute;left:50%;top:20%;width:130px;height:130px;margin-left:-65px;border-radius:50%;box-shadow:inset -34px -12px 0 0 #f4f0d8;transform:rotate(-18deg);filter:drop-shadow(0 0 34px rgba(220,225,255,.45));animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:rotate(-18deg) translateY(-10px)}}
+#night .time{font-size:80px}
+#night .in{justify-content:flex-end}
+
+@media (prefers-reduced-motion:reduce){
+  #wake .dawn,#wake .sunwrap,.fade{animation-duration:.01s;animation-delay:0s}
+  #wake .rays,#wake .glow,#night .moon,#night .stars i{animation:none}
+}
+</style>
+</head>
+<body>
+
+<main id="app"></main>
+
+<nav><div>
+  <a href="#today" data-tab="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/></svg>Today</a>
+  <a href="#gym" data-tab="gym"><svg viewBox="0 0 24 24"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg>Gym</a>
+  <a href="#content" data-tab="content"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Content</a>
+  <a href="#looks" data-tab="looks"><svg viewBox="0 0 24 24"><path d="M12 3l2.3 5.6 6 .5-4.6 3.9 1.4 5.9L12 15.8 6.9 18.9l1.4-5.9L3.7 9.1l6-.5z"/></svg>Looks</a>
+</div></nav>
+
+<!-- Wake-up overlay -->
+<div class="ov" id="wake" role="dialog" aria-modal="true" aria-label="Wake-up check-in">
+  <div class="sky"></div><div class="dawn"></div>
+  <div class="sunwrap"><div class="rays"></div><div class="glow"></div><div class="sun"></div></div>
+  <svg class="hills" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 120 Q70 60 140 110 T280 95 T400 120 V300 H0Z" fill="#3a2550" opacity=".55"/>
+    <path d="M0 165 Q90 110 180 160 T400 150 V300 H0Z" fill="#231736" opacity=".8"/>
+    <path d="M0 215 Q120 170 230 210 T400 200 V300 H0Z" fill="#120d20"/>
+  </svg>
+  <div class="in">
+    <div class="date fade d1" id="wDate"></div>
+    <div class="time fade d2" id="wTime"></div>
+    <p class="q fade d3">Woken up around this time?</p>
+    <p class="hint fade d3">Give or take 10 to 20 minutes.</p>
+    <div class="acts fade d4">
+      <button class="btn primary" id="wYes">Yes</button>
+      <button class="btn" id="wNo">No, change</button>
+    </div>
+    <div class="change" id="wChange">
+      <input type="time" id="wInput" aria-label="Actual wake-up time">
+      <button class="btn primary" id="wSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Night overlay -->
+<div class="ov" id="night" role="dialog" aria-modal="true" aria-label="Night check">
+  <div class="sky"></div><div class="stars" id="stars"></div><div class="moon"></div>
+  <div class="in">
+    <div class="date" id="nDate"></div>
+    <div class="time" id="nTime"></div>
+    <p class="q">Still awake. Logged.</p>
+    <p class="hint">Every time you're here after 22:00 it's recorded by itself, and the latest one tonight is the one that counts. Put the phone down.</p>
+    <div class="acts"><button class="btn primary" id="nOk">Going to sleep</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- time helpers ---------- */
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const hm=d=>pad(d.getHours())+":"+pad(d.getMinutes());
+const DAY_START=4;                       // a "day" runs 04:00 -> 03:59
+const logicalDay=(d=new Date())=>ymd(new Date(d.getTime()-DAY_START*3600e3));
+const isNight=(d=new Date())=>{const h=d.getHours();return h>=22||h<DAY_START;};
+const parseDay=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c);};
+const addDays=(s,n)=>{const d=parseDay(s);d.setDate(d.getDate()+n);return ymd(d);};
+const mondayOf=s=>{const d=parseDay(s);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return ymd(d);};
+const niceDate=d=>d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- state ---------- */
+const KEY="focus.v1";
+const blank=()=>({v:1,updated:0,wake:{},sleep:{},checks:{},weekly:{},
+  gym:{sessions:{},weights:{},bw:{},cur:null},content:{ideas:[]}});
+let state=blank();
+function shape(s){const b=blank();s=s||{};
+  return Object.assign(b,s,{gym:Object.assign(b.gym,s.gym||{}),content:Object.assign(b.content,s.content||{})});}
+try{const raw=localStorage.getItem(KEY);if(raw)state=shape(JSON.parse(raw));}catch(e){}
+
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function save(sync){state.updated=Date.now();prune();persist();if(sync!==false)schedulePush(2500);}
+function prune(){const cut=addDays(logicalDay(),-120);
+  for(const k of ["wake","sleep","checks"])for(const d in state[k])if(d<cut)delete state[k][d];}
+
+/* ---------- cloud copy (only when the hosting page offers it) ---------- */
+let cloudDoc=null,busy=false,dirty=false,timer=null,syncNote="Saved on this device";
+function schedulePush(ms){if(!cloudDoc)return;clearTimeout(timer);timer=setTimeout(push,ms);}
+async function push(){
+  if(!cloudDoc)return;
+  if(busy){dirty=true;return;}
+  busy=true;
+  try{await cloudDoc.set({updated:state.updated,state:JSON.parse(JSON.stringify(state))});syncNote="Backed up to your account";}
+  catch(e){if(e&&(e.code==="invalid_argument"||e.code==="revoked"||e.code==="not_granted")){cloudDoc=null;syncNote="Saved on this device";}}
+  busy=false;
+  if(dirty){dirty=false;schedulePush(3000);}
+}
+function mergeRemote(remote,stamp){
+  remote=shape(remote);
+  const local=state;
+  const base=stamp>local.updated?remote:local, other=base===remote?local:remote;
+  for(const d in other.sleep)if(!base.sleep[d]||other.sleep[d]>base.sleep[d])base.sleep[d]=other.sleep[d];
+  for(const d in other.wake)if(!base.wake[d])base.wake[d]=other.wake[d];
+  state=base;state.updated=Math.max(stamp,local.updated);persist();
+}
+async function initCloud(){
+  try{
+    if(!window.claude||typeof window.claude.use!=="function")return;
+    const[db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user)return;
+    const uid=await user.id(); if(!uid)return;
+    const ref=db.doc("data/users/"+uid+"/focus");
+    const snap=await ref.get();
+    let stamp=0;
+    if(snap.exists){const r=snap.data();if(r&&r.state){stamp=r.updated||0;mergeRemote(JSON.parse(JSON.stringify(r.state)),stamp);}}
+    cloudDoc=ref;syncNote="Backed up to your account";
+    if(state.updated>stamp)schedulePush(500);
+    if(state.wake[logicalDay()])hide("wake");
+    render();
+  }catch(e){}
+}
+
+/* ---------- wake + sleep logging ---------- */
+const $=id=>document.getElementById(id);
+const show=id=>$(id).classList.add("show");
+const hide=id=>$(id).classList.remove("show");
+let wakeShownAt=null,nightShownFor=null;
+
+function seenTonight(sync){               // automatic: latest sighting after 22:00 wins
+  const now=new Date(); if(!isNight(now))return false;
+  const day=logicalDay(now), t=now.getTime();
+  if(!state.sleep[day]||t>state.sleep[day]){state.sleep[day]=t;save(false);if(sync)schedulePush(1500);}
+  return true;
+}
+function openWake(){
+  wakeShownAt=new Date();
+  $("wDate").textContent=niceDate(wakeShownAt);
+  $("wTime").textContent=hm(wakeShownAt);
+  $("wInput").value=hm(wakeShownAt);
+  $("wChange").classList.remove("show");
+  show("wake");
+}
+function setWake(t){state.wake[logicalDay(wakeShownAt||new Date())]=t;save();hide("wake");render();}
+function openNight(){
+  const now=new Date();nightShownFor=logicalDay(now);
+  $("nDate").textContent=niceDate(now);$("nTime").textContent=hm(now);
+  show("night");
+}
+function tick(first){
+  const now=new Date(), day=logicalDay(now);
+  if(document.visibilityState==="hidden")return;
+  if(seenTonight(first===true)){
+    hide("wake");
+    if(nightShownFor!==day)openNight();
+    else if($("night").classList.contains("show"))$("nTime").textContent=hm(now);
+    if(route()==="today")render();
+  }else{
+    hide("night");
+    if(!state.wake[day]&&!$("wake").classList.contains("show"))openWake();
+  }
+  if(day!==renderedDay)render();
+}
+$("wYes").onclick=()=>setWake(hm(wakeShownAt));
+$("wNo").onclick=()=>{$("wChange").classList.add("show");$("wInput").focus();};
+$("wSave").onclick=()=>{const v=$("wInput").value;if(/^\d\d:\d\d$/.test(v))setWake(v);};
+$("nOk").onclick=()=>{seenTonight(true);hide("night");render();};
+
+(function stars(){let h="";for(let i=0;i<46;i++){const x=(i*37+11)%100,y=(i*53+7)%62,s=1+(i%3);
+  h+=`<i style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${(i%7)*.4}s"></i>`;}$("stars").innerHTML=h;})();
+
+/* ---------- derived numbers ---------- */
+function sleptFor(day){                   // night before `day` -> wake on `day`
+  const w=state.wake[day], s=state.sleep[addDays(day,-1)];
+  if(!w||!s)return null;
+  const[a,b]=w.split(":").map(Number);const wd=parseDay(day);wd.setHours(a,b,0,0);
+  const mins=Math.round((wd.getTime()-s)/60000);
+  return mins>0&&mins<18*60?mins:null;
+}
+const dur=m=>Math.floor(m/60)+"h "+pad(m%60)+"m";
+function wakeStreak(){let n=0,d=logicalDay();if(!state.wake[d])d=addDays(d,-1);while(state.wake[d]){n++;d=addDays(d,-1);}return n;}
+function gymThisWeek(){const m=mondayOf(logicalDay());return Object.keys(state.gym.sessions).filter(d=>d>=m).length;}
+function postedThisWeek(){const m=mondayOf(logicalDay());return state.content.ideas.filter(i=>i.posted&&i.posted>=m).length;}
+
+/* ---------- data ---------- */
+const WORKOUTS={
+ A:[["squat","Squat","3 × 5–8"],["bench","Bench press","3 × 5–8"],["row","Barbell or cable row","3 × 6–10"],["lat","Lateral raise","3 × 10–15"],["plank","Plank","3 × 30–60 s"]],
+ B:[["rdl","Romanian deadlift","3 × 6–10"],["ohp","Overhead press","3 × 5–8"],["pull","Pull-ups or lat pulldown","3 × 6–10"],["lunge","Lunges or leg press","3 × 8–12"],["arms","Curls + triceps pushdown","2 × 10–15 each"]]
+};
+const STAGES=["Idea","Script","Film","Edit","Posted"];
+const DAILY=[
+ ["Morning",[["am_teeth","Brush teeth"],["am_wash","Rinse or gentle cleanser"],["am_moist","Moisturizer"],["am_spf","Sunscreen SPF 30+","Face and neck. Most important March to September and whenever you use a retinoid."]]],
+ ["Day",[["walk","20+ minutes walking outside"],["posture","Stand tall: chest up, chin level","Check it each time you walk through a door."]]],
+ ["Night",[["pm_wash","Gentle cleanser"],["pm_treat","Acne treatment (only if you break out)","Pea-sized amount, thin layer. Start every other night."],["pm_moist","Moisturizer"],["pm_teeth","Brush and floss"]]]
+];
+const WEEKLY=[["pillow","Fresh pillowcase and towel"],["nails","Trim and clean nails"],["groom","Tidy beard line, neck and eyebrows"],["photo","Progress photo","Same spot, same light, same time. Compare month to month, not day to day."],["hair","Haircut booked?","Every 3 to 4 weeks keeps it sharp."]];
+
+/* ---------- rendering ---------- */
+const app=$("app");let renderedDay=null;
+const route=()=>{const h=location.hash.slice(1);return ["today","gym","content","looks"].includes(h)?h:"today";};
+function checkRow(scope,id,label,note,done){
+  return `<button class="check${done?" done":""}" data-act="check" data-scope="${scope}" data-id="${id}" aria-pressed="${!!done}"><span class="box"></span><span class="lbl">${esc(label)}${note?`<small>${esc(note)}</small>`:""}</span></button>`;
+}
+function looksCount(){const c=state.checks[logicalDay()]||{};let n=0,t=0;DAILY.forEach(g=>g[1].forEach(i=>{t++;if(c[i[0]])n++;}));return[n,t];}
+
+function viewToday(){
+  const now=new Date(), day=logicalDay(now), w=state.wake[day], lastNight=state.sleep[addDays(day,-1)], tonight=state.sleep[day];
+  const slept=sleptFor(day), g=gymThisWeek(), p=postedThisWeek(), [ln,lt]=looksCount(), st=wakeStreak();
+  const trained=!!state.gym.sessions[day];
+  let rows="";
+  for(let i=0;i<7;i++){const d=addDays(day,-i), s=state.sleep[addDays(d,-1)], sl=sleptFor(d);
+    rows+=`<tr><td>${i===0?"Today":parseDay(d).toLocaleDateString(undefined,{weekday:"short",day:"numeric"})}</td><td>${s?hm(new Date(s)):"–"}</td><td>${state.wake[d]||"–"}</td><td>${sl?dur(sl):"–"}</td></tr>`;}
+  return `
+  <p class="sub">${esc(niceDate(now))}</p>
+  <h1>Focus.</h1>
+  <p class="sub">Do the work. The results follow.</p>
+
+  <h2>Sleep</h2>
+  <div class="grid2">
+    <div class="card stat"><span class="pill on">Woke up</span><div class="big">${w||"–"}</div><div class="small">${st>1?st+" days logged in a row":"Logged when you open the app"}</div></div>
+    <div class="card stat"><span class="pill night">Last seen awake</span><div class="big">${tonight?hm(new Date(tonight)):lastNight?hm(new Date(lastNight)):"–"}</div><div class="small">${tonight?"Tonight, logged automatically":lastNight?"Last night, logged automatically":"Not seen here after 22:00"}</div></div>
+  </div>
+  <div class="card row"><div class="grow"><div class="small">Time between last seen and waking up</div><div class="big" style="margin-top:6px">${slept?dur(slept):"–"}</div></div><span class="pill${slept&&slept>=450?" on":""}">Target 7h 30m+</span></div>
+
+  <h2>Today's three</h2>
+  <a class="card row" href="#gym" style="text-decoration:none;color:inherit"><div class="grow"><b>Gym</b><div class="small">${trained?"Done today":"Not trained today"} · ${g} of 3 this week</div><div class="dots">${[0,1,2].map(i=>`<i class="${i<g?"on":""}"></i>`).join("")}</div></div></a>
+  <a class="card row" href="#content" style="text-decoration:none;color:inherit"><div class="grow"><b>Content</b><div class="small">${p} posted this week · goal 1</div><div class="bar"><i style="width:${Math.min(100,p*100)}%"></i></div></div></a>
+  <a class="card row" href="#looks" style="text-decoration:none;color:inherit"><div class="grow"><b>Looks</b><div class="small">${ln} of ${lt} done today</div><div class="bar"><i style="width:${Math.round(ln/lt*100)}%"></i></div></div></a>
+
+  <h2>Last 7 days</h2>
+  <div class="card"><table class="log"><thead><tr><th>Day</th><th>Last seen</th><th>Woke</th><th>Between</th></tr></thead><tbody>${rows}</tbody></table>
+  <p class="small" style="margin:12px 0 0">"Last seen" is the latest time this app was open after 22:00 the night before. It can't be edited. ${esc(syncNote)}.</p></div>`;
+}
+
+function viewGym(){
+  const day=logicalDay(), G=state.gym, g=gymThisWeek(), done=G.sessions[day];
+  const dates=Object.keys(G.sessions).sort(), last=dates.length?G.sessions[dates[dates.length-1]]:null;
+  if(!G.cur||G.cur.day!==day)G.cur={day,type:done||(last==="A"?"B":"A"),done:{}};
+  const type=G.cur.type, list=WORKOUTS[type], ticked=list.filter(e=>G.cur.done[e[0]]).length;
+  const bwDates=Object.keys(G.bw).sort(), bw=bwDates.length?G.bw[bwDates[bwDates.length-1]]:78;
+  const ex=list.map(e=>`<div class="check${G.cur.done[e[0]]?" done":""}" style="gap:10px">
+      <button class="box" data-act="ex" data-id="${e[0]}" aria-label="Mark ${esc(e[1])} done" aria-pressed="${!!G.cur.done[e[0]]}"></button>
+      <span class="lbl grow">${esc(e[1])}<small>${e[2]}</small></span>
+      ${e[0]==="plank"?"":`<input class="kg" inputmode="decimal" placeholder="kg" value="${G.weights[e[0]]??""}" data-kg="${e[0]}" aria-label="${esc(e[1])} weight in kg">`}
+    </div>`).join("");
+  return `
+  <h1>Gym</h1>
+  <p class="sub">Three full-body sessions a week. Add weight when you hit the top of the rep range on every set.</p>
+  <div class="card"><div class="row"><div class="grow"><b>This week</b><div class="small">${g} of 3 sessions</div></div><span class="pill${g>=3?" on":""}">${g>=3?"Week done":"Mon–Sun"}</span></div><div class="dots">${[0,1,2].map(i=>`<i class="${i<g?"on":""}"></i>`).join("")}</div></div>
+
+  <h2>${done?"Today's session: done":"Today: Workout "+type}</h2>
+  <div class="card">${ex}</div>
+  ${done?`<button class="btn block" data-act="undoGym">Undo today's session</button>`:
+   `<div class="row"><button class="btn" data-act="swap">Switch to ${type==="A"?"B":"A"}</button><button class="btn primary grow" data-act="finish"${ticked?"":" disabled"}>Finish workout</button></div>`}
+
+  <h2>Fuel</h2>
+  <div class="card">
+    <div class="row"><div class="grow"><b>Body weight</b><div class="small">${bwDates.length?"Last logged "+bwDates[bwDates.length-1]:"Weigh in once a week, same morning"}</div></div>
+    <input class="kg" id="bw" inputmode="decimal" placeholder="kg" value="${bwDates.length?bw:""}" aria-label="Body weight in kg"><button class="btn" data-act="bw">Log</button></div>
+  </div>
+  <div class="grid2">
+    <div class="card stat"><span class="pill on">Protein per day</span><div class="big">${Math.round(bw*1.6)} g</div><div class="small">1.6 g per kg at ${bw} kg. More than that adds little.</div></div>
+    <div class="card stat"><span class="pill">Rest</span><div class="big">1 day</div><div class="small">At least one day between sessions. Muscle grows while you sleep.</div></div>
+  </div>`;
+}
+
+function viewContent(){
+  const ideas=state.content.ideas, open=ideas.filter(i=>i.stage<4), posted=ideas.filter(i=>i.stage>=4).sort((a,b)=>(b.posted||"").localeCompare(a.posted||"")), p=postedThisWeek();
+  const cards=open.map(i=>`<div class="card"><div class="row"><b class="grow">${esc(i.title)}</b><button class="x" data-act="del" data-id="${i.id}" aria-label="Delete ${esc(i.title)}">${i.id===confirmDel?"Sure?":"×"}</button></div>
+      <div class="stages">${STAGES.map((s,n)=>`<span class="${n<i.stage?"on":n===i.stage?"now":""}">${s}</span>`).join("")}</div>
+      <button class="btn block${i.stage===3?" primary":""}" data-act="next" data-id="${i.id}">${i.stage===3?"Mark as posted":"Done with "+STAGES[i.stage].toLowerCase()+" → "+STAGES[i.stage+1].toLowerCase()}</button></div>`).join("");
+  return `
+  <h1>Content</h1>
+  <p class="sub">Count what you publish, not the views. One video a week, every week.</p>
+  <div class="grid2">
+    <div class="card stat"><span class="pill${p?" on":""}">This week</span><div class="big">${p} / 1</div><div class="small">${p?"Posted. Start the next one.":"Nothing posted yet"}</div></div>
+    <div class="card stat"><span class="pill">All time</span><div class="big">${posted.length}</div><div class="small">videos posted</div></div>
+  </div>
+
+  <h2>Add a quest</h2>
+  <form class="row" id="ideaForm"><input class="field" id="idea" placeholder="Video idea, e.g. 24 hours in the forest" maxlength="90" aria-label="Video idea"><button class="btn primary">Add</button></form>
+
+  <h2>In progress</h2>
+  ${cards||`<div class="card small">No videos in progress. Add one idea above and move it one step today.</div>`}
+
+  ${posted.length?`<h2>Posted</h2><div class="card">${posted.map(i=>`<div class="check done" style="cursor:default"><span class="box"></span><span class="lbl" style="text-decoration:none;color:var(--text)">${esc(i.title)}<small>${i.posted||""}</small></span></div>`).join("")}</div>`:""}`;
+}
+
+function viewLooks(){
+  const day=logicalDay(), c=state.checks[day]||{}, wk=state.weekly[mondayOf(day)]||{}, [n,t]=looksCount();
+  const tier=(k,h,p)=>`<div class="tier"><b class="n">${k}</b><div><h3>${h}</h3><p>${p}</p></div></div>`;
+  return `
+  <h1>Looks</h1>
+  <p class="sub">No single hack gets you to the top. The whole stack does, done every day for six months.</p>
+  <div class="card"><div class="row"><div class="grow"><b>Today</b><div class="small">${n} of ${t} done</div></div></div><div class="bar"><i style="width:${Math.round(n/t*100)}%"></i></div></div>
+  ${DAILY.map(g=>`<h2>${g[0]}</h2><div class="card">${g[1].map(i=>checkRow("d",i[0],i[1],i[2],c[i[0]])).join("")}</div>`).join("")}
+  <h2>This week</h2><div class="card">${WEEKLY.map(i=>checkRow("w",i[0],i[1],i[2],wk[i[0]])).join("")}</div>
+
+  <h2>What moves the needle, in order</h2>
+  <div class="card">
+    ${tier(1,"Sleep","In Swedish experiments, strangers rated photos of the same people as less attractive and less healthy after short sleep, and wanted to hang out with them less. Nothing in a bottle beats 7.5+ hours.")}
+    ${tier(2,"Body: lift and get lean","Shoulders, back and a lower body-fat level change how your face, jaw and clothes look more than anything you can apply. Train three times a week and eat about 1.6 g of protein per kg. Expect visible change in 3 to 6 months.")}
+    ${tier(3,"Skin","Keep it simple: gentle cleanser, moisturizer, sunscreen. If you get acne, dermatology guidelines strongly back a retinoid (adapalene) at night plus benzoyl peroxide, used together. Give it 8 to 12 weeks. Ask at the pharmacy what you can buy without a prescription. Painful or scarring acne means book a doctor, because stronger treatment exists.")}
+    ${tier(4,"Sunscreen","In a 4.5-year randomized trial, adults told to use sunscreen daily showed 24% less skin aging than those who used it when they felt like it. This is the one that pays off at 35.")}
+    ${tier(5,"Hair and grooming","A cut that suits your face shape, kept fresh every 3 to 4 weeks, is the fastest visible upgrade there is. Ask a good barber what fits you. Beard either clean-shaven or kept with a sharp line. Tidy brows, clean nails.")}
+    ${tier(6,"Teeth and smile","Brush twice, floss at night, see a dentist once a year. If crooked teeth or your bite bother you, an orthodontist is the route that really changes the lower face.")}
+    ${tier(7,"Clothes, posture, scent","Clothes that fit your shoulders and waist beat expensive ones. Plain, dark, well-fitted basics. Stand tall. Shower daily, deodorant, one fragrance used lightly.")}
+    ${tier(8,"Presence","Faces are judged in motion. Eye contact, a real smile and slower speech raise how people rate you more than a few millimetres of jawline. This is the shy-guy training: one conversation a day.")}
+  </div>
+
+  <h2>Skip these</h2>
+  <div class="card skip">
+    ${tier("×","Mewing","The American Association of Orthodontists says there is no scientific evidence it reshapes the jaw, and warns it can cause bite and speech problems.")}
+    ${tier("×","Bone smashing, jaw gadgets","Hitting your face injures it. Hard chewing devices can overload the jaw joint.")}
+    ${tier("×","Steroids, SARMs, crash diets","Acne, hair loss, hormone damage and rebound. They cost you looks within a couple of years. At 21 as a beginner you gain fast without them.")}
+    ${tier("×","Supplement stacks for skin","In the same sunscreen trial, beta-carotene pills did nothing for skin aging. Spend the money on a haircut and food.")}
+  </div>
+  <p class="small">Height and bone structure are fixed. Everything above is not, and it is the larger share of how you come across. If checking the mirror starts to take over your day, talk to someone about it.</p>
+
+  <h2>Sources</h2>
+  <ol class="src">
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5451790" target="_blank" rel="noopener">Sundelin et al., restricted sleep and facial appearance (Royal Society Open Science, 2017)</a></li>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noopener">Morton et al., protein and resistance-training gains, meta-analysis (2017)</a></li>
+    <li><a href="https://www.aafp.org/pubs/afp/issues/2025/1100/practice-guidelines-acne-management.html" target="_blank" rel="noopener">American Academy of Dermatology acne guidelines, summary (AAFP, 2025)</a></li>
+    <li><a href="https://read.qxmd.com/read/23732711/sunscreen-and-prevention-of-skin-aging-a-randomized-trial" target="_blank" rel="noopener">Hughes et al., sunscreen and skin aging, randomized trial (Annals of Internal Medicine, 2013)</a></li>
+    <li><a href="https://aaoinfo.org/whats-trending/is-mewing-bad-for-you" target="_blank" rel="noopener">American Association of Orthodontists on mewing</a></li>
+  </ol>`;
+}
+
+let confirmDel=null;
+function render(){
+  const r=route();renderedDay=logicalDay();
+  app.innerHTML=({today:viewToday,gym:viewGym,content:viewContent,looks:viewLooks})[r]();
+  document.querySelectorAll("nav a").forEach(a=>{const on=a.dataset.tab===r;a.classList.toggle("on",on);on?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current");});
+}
+
+/* ---------- actions ---------- */
+app.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const act=b.dataset.act,id=b.dataset.id,day=logicalDay(),G=state.gym;
+  if(act==="check"){
+    if(b.dataset.scope==="d"){const c=state.checks[day]||(state.checks[day]={});c[id]?delete c[id]:c[id]=1;}
+    else{const k=mondayOf(day),c=state.weekly[k]||(state.weekly[k]={});c[id]?delete c[id]:c[id]=1;}
+  }
+  else if(act==="ex"){G.cur.done[id]?delete G.cur.done[id]:G.cur.done[id]=1;}
+  else if(act==="swap"){G.cur={day,type:G.cur.type==="A"?"B":"A",done:{}};}
+  else if(act==="finish"){G.sessions[day]=G.cur.type;}
+  else if(act==="undoGym"){delete G.sessions[day];}
+  else if(act==="bw"){const v=parseFloat(String($("bw").value).replace(",","."));if(v>30&&v<250)G.bw[day]=Math.round(v*10)/10;else return;}
+  else if(act==="next"){const i=state.content.ideas.find(x=>x.id===id);if(!i)return;i.stage++;if(i.stage>=4){i.stage=4;i.posted=day;}}
+  else if(act==="del"){if(confirmDel!==id){confirmDel=id;render();return;}state.content.ideas=state.content.ideas.filter(x=>x.id!==id);}
+  confirmDel=null;save();render();
+});
+app.addEventListener("change",e=>{
+  const k=e.target.dataset&&e.target.dataset.kg;if(!k)return;
+  const v=parseFloat(String(e.target.value).replace(",","."));
+  if(v>0&&v<600)state.gym.weights[k]=v;else delete state.gym.weights[k];
+  save();
+});
+app.addEventListener("submit",e=>{
+  e.preventDefault();if(e.target.id!=="ideaForm")return;
+  const t=$("idea").value.trim();if(!t)return;
+  state.content.ideas.unshift({id:"i"+Date.now().toString(36),title:t,stage:0});
+  save();render();$("idea").focus();
+});
+
+/* ---------- start ---------- */
+window.addEventListener("hashchange",()=>{confirmDel=null;render();window.scrollTo(0,0);});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")tick(true);else if(cloudDoc&&isNight())push();});
+render();tick(true);
+setInterval(tick,30000);
+initCloud();
+if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").catch(()=>{});}catch(e){}}
+})();
+</script>
+</body>
+</html>
